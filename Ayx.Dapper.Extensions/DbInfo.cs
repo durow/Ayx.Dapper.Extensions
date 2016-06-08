@@ -19,7 +19,7 @@ namespace Ayx.Dapper.Extensions
                 return _default;
             } }
 
-        public Func<IDbConnection> Connection { get; set; }
+        public Func<IDbConnection> CreateConnection { get; set; }
         public int Count { get { return tableList.Count; } }
 
         private List<DbTableInfo> tableList = new List<DbTableInfo>();
@@ -27,7 +27,7 @@ namespace Ayx.Dapper.Extensions
 
         public DbInfo(Func<IDbConnection> createConnection = null)
         {
-            Connection = createConnection;
+            CreateConnection = createConnection;
         }
         public DbTableInfo Register<TModel>(string tableName = null,string token = null)
         {

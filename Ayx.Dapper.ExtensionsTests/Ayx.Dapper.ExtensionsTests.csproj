@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="DbInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlGeneratorTests.cs" />
     <Compile Include="TestModels.cs" />
   </ItemGroup>
   <ItemGroup>

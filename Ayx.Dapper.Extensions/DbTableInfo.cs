@@ -12,17 +12,21 @@ namespace Ayx.Dapper.Extensions
         public string TableName { get; private set; }
         public List<DbFieldInfo> FieldInfoList { get; private set; }
 
-        public DbTableInfo(Type modelType, string tableName, string token = null)
+        public DbTableInfo(Type modelType, string tableName = null, string token = null)
         {
+            if (string.IsNullOrEmpty(tableName))
+                tableName = modelType.Name;
+
             ModelType = modelType;
             TableName = tableName;
             FieldInfoList = new List<DbFieldInfo>();
             Token = token;
         }
 
-        public void SetFields(params DbFieldInfo[] fields)
+        public DbTableInfo SetFields(params DbFieldInfo[] fields)
         {
             FieldInfoList.AddRange(fields);
+            return this;
         }
 
         public DbFieldInfo GetField(string propertyName)
