@@ -14,20 +14,20 @@ namespace Ayx.Dapper.Extensions.Tests
         [TestMethod()]
         public void RegisterTest()
         {
-            DbInfo.Clear();
-            DbInfo.Register<TestModel>();
-            Assert.AreEqual(1, DbInfo.Count);
+            var db = new DbInfo();
+            db.Register<TestModel>();
+            Assert.AreEqual(1, db.Count);
         }
 
         [TestMethod()]
         public void GetTableTest()
         {
-            DbInfo.Clear();
-            DbInfo.Register<TestModel>("TestTable").SetFields(
+            var db = new DbInfo();
+            db.Register<TestModel>("TestTable").SetFields(
                 new DbFieldInfo("IntProperty", "IntField"),
                 new DbFieldInfo("StringProperty", "StringField"));
 
-            var test = DbInfo.GetTable<TestModel>();
+            var test = db.GetTable<TestModel>();
             Assert.AreEqual("TestTable", test.TableName);
             Assert.AreEqual(typeof(TestModel), test.ModelType);
             Assert.AreEqual(null, test.Token);

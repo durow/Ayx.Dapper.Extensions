@@ -52,6 +52,7 @@
     <Compile Include="IDbFieldType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlGenerator.cs" />
+    <Compile Include="SqlStringInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

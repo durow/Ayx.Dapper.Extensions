@@ -2,15 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 
 namespace Ayx.Dapper.Extensions
 {
-    public static class DbInfo
+    public class DbInfo
     {
-        public static int Count { get { return tableList.Count; } }
-        private static List<DbTableInfo> tableList = new List<DbTableInfo>();
 
-        public static DbTableInfo Register<TModel>(string tableName = null,string token = null)
+        private static DbInfo _default;
+        public static DbInfo Default
+        {
+            get
+            {
+                if (_default == null)
+                    _default = new DbInfo();
+                return _default;
+            } }
+
+        public Func<IDbConnection> Connection { get; set; }
+        public int Count { get { return tableList.Count; } }
+
+        private List<DbTableInfo> tableList = new List<DbTableInfo>();
+        private SqlGenerator SqlGenerator = new SqlGenerator();
+
+        public DbInfo(Func<IDbConnection> createConnection = null)
+        {
+            Connection = createConnection;
+        }
+        public DbTableInfo Register<TModel>(string tableName = null,string token = null)
         {
             var type = typeof(TModel);
             if (string.IsNullOrEmpty(tableName))
@@ -26,19 +45,19 @@ namespace Ayx.Dapper.Extensions
             return table;
         }
 
-        public static DbTableInfo GetTable(Type type, string token = null)
+        public DbTableInfo GetTable(Type type, string token = null)
         {
             return tableList
                 .Where(p => p.ModelType == type && p.Token == token)
                 .FirstOrDefault();
         }
 
-        public static DbTableInfo GetTable<TModel>(string token=null)
+        public DbTableInfo GetTable<TModel>(string token=null)
         {
             return GetTable(typeof(TModel), token);
         }
 
-        public static void Clear()
+        public void Clear()
         {
             tableList.Clear();
         }
