@@ -72,7 +72,7 @@ namespace Ayx.Dapper.Extensions.Tests
 
             var test1 = sqlGen.GenerateSelect(type, tableInfo);
             var test2 = sqlGen.GenerateSelect(type, tableInfo, "");
-            var test3 = sqlGen.GenerateSelect(type, tableInfo, "StringProperty","IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
+            var test3 = sqlGen.GenerateSelect(type, tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
 
             var expected1 = "SELECT * FROM TestModel";
             var expected2 = "SELECT ID,StringProperty,IntField FROM TestModel";
@@ -86,6 +86,75 @@ namespace Ayx.Dapper.Extensions.Tests
             var test4 = sqlGen.GenerateSelect(type, tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
             Assert.ReferenceEquals(test3, test4);
             Assert.AreEqual(3, sqlGen.CacheCount);
+        }
+
+        [TestMethod()]
+        public void MakeDeleteWhereTest()
+        {
+            var type = typeof(TestModel);
+            var tableInfo = new DbTableInfo(type).SetFields(
+                new DbFieldInfo("IntProperty", "IntField"),
+                new DbFieldInfo("NotField").SetNotDbField(),
+                new DbFieldInfo("ID").SetPrimaryKey());
+            var test1 = SqlGenerator.MakeDeleteWhere(type, tableInfo, null);
+            var test2 = SqlGenerator.MakeDeleteWhere(type, tableInfo, "ID>10");
+
+            Assert.AreEqual(" WHERE ID=@ID", test1);
+            Assert.AreEqual(" WHERE ID>10", test2);
+        }
+
+        [TestMethod()]
+        public void GenerateDeleteTest()
+        {
+            var gen = new SqlGenerator();
+            var type = typeof(TestModel);
+            var tableInfo = new DbTableInfo(type).SetFields(
+                new DbFieldInfo("IntProperty", "IntField"),
+                new DbFieldInfo("NotField").SetNotDbField(),
+                new DbFieldInfo("ID").SetPrimaryKey());
+
+            var test1 = gen.GenerateDelete(type, tableInfo);
+            var test2 = gen.GenerateDelete(type, tableInfo, "ID>10");
+            var expected1 = "DELETE FROM TestModel WHERE ID=@ID";
+            var expected2 = "DELETE FROM TestModel WHERE ID>10";
+
+            Assert.AreEqual(expected1, test1);
+            Assert.AreEqual(expected2, test2);
+            Assert.AreEqual(2, gen.CacheCount);
+
+            var test3 = gen.GenerateDelete(type, tableInfo, "ID>10");
+            Assert.ReferenceEquals(test2, test3);
+            Assert.AreEqual(2, gen.CacheCount);
+        }
+
+        [TestMethod()]
+        public void GenerateDeleteTest1()
+        {
+            var gen = new SqlGenerator();
+            var type = typeof(TestModel);
+            var tableInfo = new DbTableInfo(type).SetFields(
+                new DbFieldInfo("IntProperty", "IntField"),
+                new DbFieldInfo("NotField").SetNotDbField());
+
+            try
+            {
+                var test1 = gen.GenerateDelete(type, tableInfo);
+                Assert.Fail();
+            }
+            catch (Exception e)
+            {
+                Assert.AreEqual("can't find primary key when generate delete command!", e.Message);
+            }
+
+            try
+            {
+                var test2 = gen.GenerateDelete(type, null);
+                Assert.Fail();
+            }
+            catch (Exception e)
+            {
+                Assert.AreEqual("can't find primary key when generate delete command!", e.Message);
+            }
         }
     }
 }

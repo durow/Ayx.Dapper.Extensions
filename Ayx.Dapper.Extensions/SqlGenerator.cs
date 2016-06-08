@@ -25,6 +25,20 @@ namespace Ayx.Dapper.Extensions
             return result;
         }
 
+        public string GenerateDelete(Type type, DbTableInfo tableInfo, string where = null)
+        {
+            var cache = GetFromCache(type, "DELETE", null, where);
+            if (cache != null) return cache.SqlString;
+
+            var tableName = MakeTableName(type, tableInfo);
+            var wherePart = MakeDeleteWhere(type, tableInfo, where);
+            if (wherePart == null)
+                throw new Exception("can't find primary key when generate delete command!");
+            var sql = $"DELETE FROM {tableName}{wherePart}";
+            AddToCache(type, "DELETE", null, where, sql);
+            return sql;
+        }
+
         public void AddToCache(Type modelType,string verb,string param1,string param2,string sql)
         {
             Cache.Add(new SqlStringInfo
@@ -83,6 +97,24 @@ namespace Ayx.Dapper.Extensions
             if (string.IsNullOrEmpty(where))
                 return "";
             return " WHERE " + where;
+        }
+
+        public static string MakeDeleteWhere(Type type, DbTableInfo tableInfo, string where)
+        {
+            if (!string.IsNullOrEmpty(where))
+                return MakeWhere(where);
+            if (tableInfo == null)
+                throw new Exception("can't find primary key when generate delete command!");
+
+            foreach (var property in type.GetProperties())
+            {
+                var fieldInfo = tableInfo.GetField(property.Name);
+                if (fieldInfo == null) continue;
+                if (fieldInfo.IsPrimaryKey)
+                    return " WHERE " + fieldInfo.DbFieldName + "=@" + fieldInfo.PropertyName;
+            }
+
+            return null;
         }
 
         public static string MakeTableName(Type modelType,DbTableInfo tableInfo)
