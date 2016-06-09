@@ -96,8 +96,8 @@ namespace Ayx.Dapper.Extensions.Tests
                 new DbFieldInfo("IntProperty", "IntField"),
                 new DbFieldInfo("NotField").SetNotDbField(),
                 new DbFieldInfo("ID").SetPrimaryKey());
-            var test1 = SqlGenerator.MakeDeleteWhere(type, tableInfo, null);
-            var test2 = SqlGenerator.MakeDeleteWhere(type, tableInfo, "ID>10");
+            var test1 = SqlGenerator.MakeKeyWhere(type, tableInfo, null);
+            var test2 = SqlGenerator.MakeKeyWhere(type, tableInfo, "ID>10");
 
             Assert.AreEqual(" WHERE ID=@ID", test1);
             Assert.AreEqual(" WHERE ID>10", test2);
@@ -155,6 +155,54 @@ namespace Ayx.Dapper.Extensions.Tests
             {
                 Assert.AreEqual("can't find primary key when generate delete command!", e.Message);
             }
+        }
+
+        [TestMethod()]
+        public void MakeUpdateFieldsTest()
+        {
+            var type = typeof(TestModel);
+            var tableInfo = new DbTableInfo(type).SetFields(
+                new DbFieldInfo("ID").SetAutoIncrement().SetPrimaryKey(),
+                new DbFieldInfo("IntProperty", "IntField"),
+                new DbFieldInfo("NotField").SetNotDbField());
+            var test1 = SqlGenerator.MakeUpdateFields(type, tableInfo, null);
+            var test2 = SqlGenerator.MakeUpdateFields(type, tableInfo, "StringProperty=@StringProperty");
+            var test3 = SqlGenerator.MakeUpdateFields(type, tableInfo, "StringProperty,IntProperty");
+
+            var expected1 = "StringProperty=@StringProperty,IntField=@IntProperty";
+            var expected2 = "StringProperty=@StringProperty";
+
+            Assert.AreEqual(expected1, test1);
+            Assert.AreEqual(expected2, test2);
+            Assert.AreEqual(expected1, test3);
+        }
+
+        [TestMethod()]
+        public void GenerateUpdateTest()
+        {
+            var gen = new SqlGenerator();
+            var type = typeof(TestModel);
+            var tableInfo = new DbTableInfo(type).SetFields(
+                new DbFieldInfo("ID").SetAutoIncrement().SetPrimaryKey(),
+                new DbFieldInfo("IntProperty", "IntField"),
+                new DbFieldInfo("NotField").SetNotDbField());
+
+            var test1 = gen.GenerateUpdate(type, tableInfo);
+            var test2 = gen.GenerateUpdate(type, tableInfo, "StringProperty=@StringProperty", "ID>9");
+            var test3 = gen.GenerateUpdate(type, tableInfo, "IntProperty");
+
+            var expected1 = "UPDATE TestModel SET StringProperty=@StringProperty,IntField=@IntProperty WHERE ID=@ID";
+            var expected2 = "UPDATE TestModel SET StringProperty=@StringProperty WHERE ID>9";
+            var expected3 = "UPDATE TestModel SET IntField=@IntProperty WHERE ID=@ID";
+
+            Assert.AreEqual(expected1, test1);
+            Assert.AreEqual(expected2, test2);
+            Assert.AreEqual(expected3, test3);
+            Assert.AreEqual(3, gen.CacheCount);
+
+            var test4 = gen.GenerateUpdate(type, tableInfo);
+            Assert.ReferenceEquals(test1, test4);
+            Assert.AreEqual(3, gen.CacheCount);
         }
     }
 }

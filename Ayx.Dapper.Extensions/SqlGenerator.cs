@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Ayx.Dapper.Extensions
@@ -31,11 +32,27 @@ namespace Ayx.Dapper.Extensions
             if (cache != null) return cache.SqlString;
 
             var tableName = MakeTableName(type, tableInfo);
-            var wherePart = MakeDeleteWhere(type, tableInfo, where);
-            if (wherePart == null)
+            var wherePart = MakeKeyWhere(type, tableInfo, where);
+            if (string.IsNullOrEmpty(wherePart))
                 throw new Exception("can't find primary key when generate delete command!");
             var sql = $"DELETE FROM {tableName}{wherePart}";
             AddToCache(type, "DELETE", null, where, sql);
+            return sql;
+        }
+
+        public string GenerateUpdate(Type type, DbTableInfo tableInfo, string fields = null, string where = null)
+        {
+            var cache = GetFromCache(type, "UPDATE", fields, where);
+            if (cache != null) return cache.SqlString;
+
+            var tableName = MakeTableName(type, tableInfo);
+            var fieldsPart = MakeUpdateFields(type, tableInfo, fields);
+            var wherePart = MakeKeyWhere(type, tableInfo, where);
+
+            if(string.IsNullOrEmpty(wherePart))
+                throw new Exception("can't find primary key when generate delete command!");
+            var sql = $"UPDATE {tableName} SET {fieldsPart}{wherePart}";
+            AddToCache(type, "UPDATE", fields, where, sql);
             return sql;
         }
 
@@ -71,7 +88,7 @@ namespace Ayx.Dapper.Extensions
             var result = "";
             foreach (var property in modelType.GetProperties())
             {
-                if (!property.PropertyType.IsValueType && property.PropertyType != typeof(string))
+                if (!CheckDbProperty(property))
                     continue;
 
                 if(tableInfo == null)
@@ -92,6 +109,52 @@ namespace Ayx.Dapper.Extensions
             return result.Substring(0, result.Length - 1);
         }
 
+        public static string MakeUpdateFields(Type modelType,DbTableInfo tableInfo, string fields)
+        {
+            var result = "";
+
+            if (!string.IsNullOrEmpty(fields))
+            {
+                var fieldList = fields.Split(',');
+                foreach (var field in fieldList)
+                {
+                    if (field.Contains("@") && field.Contains("="))
+                    {
+                        result += $"{field},";
+                        continue;
+                    }
+                    result += MakeUpdateField(tableInfo, field);
+                }
+            }
+            else
+            {
+                foreach (var property in modelType.GetProperties())
+                {
+                    if (!CheckDbProperty(property))
+                        continue;
+
+                    result += MakeUpdateField(tableInfo, property.Name);
+                }
+            }
+
+            return result.Substring(0, result.Length - 1);
+        }
+
+        public static string MakeUpdateField(DbTableInfo tableInfo,string propertyName)
+        {
+            if (tableInfo != null)
+            {
+                var fieldInfo = tableInfo.GetField(propertyName);
+                if (fieldInfo != null)
+                {
+                    if (fieldInfo.IsAutoIncrement) return "";
+                    if (fieldInfo.NotDbField) return "";
+                    return $"{fieldInfo.DbFieldName}=@{fieldInfo.PropertyName},";
+                }
+            }
+            return $"{propertyName}=@{propertyName},";
+        }
+
         public static string MakeWhere(string where)
         {
             if (string.IsNullOrEmpty(where))
@@ -99,7 +162,7 @@ namespace Ayx.Dapper.Extensions
             return " WHERE " + where;
         }
 
-        public static string MakeDeleteWhere(Type type, DbTableInfo tableInfo, string where)
+        public static string MakeKeyWhere(Type type, DbTableInfo tableInfo, string where)
         {
             if (!string.IsNullOrEmpty(where))
                 return MakeWhere(where);
@@ -122,6 +185,13 @@ namespace Ayx.Dapper.Extensions
             if (tableInfo == null)
                 return modelType.Name;
             return tableInfo.TableName;
+        }
+
+        public static bool CheckDbProperty(PropertyInfo property)
+        {
+            if (!property.PropertyType.IsValueType && property.PropertyType != typeof(string))
+                return false;
+            return true;
         }
     }
 }
