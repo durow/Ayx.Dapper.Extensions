@@ -23,7 +23,7 @@ namespace Ayx.Dapper.Extensions
         public int Count { get { return tableList.Count; } }
 
         private List<DbTableInfo> tableList = new List<DbTableInfo>();
-        private SqlGenerator SqlGenerator = new SqlGenerator();
+        private SqlBuilder SqlGenerator = new SqlBuilder();
 
         public DbInfo(Func<IDbConnection> createConnection = null)
         {

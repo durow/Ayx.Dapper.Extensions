@@ -51,8 +51,15 @@
     <Compile Include="DbTableInfo.cs" />
     <Compile Include="IDbFieldType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlGenerator.cs" />
-    <Compile Include="SqlStringInfo.cs" />
+    <Compile Include="SqlBuilder.cs" />
+    <Compile Include="Sql\SqlBase.cs" />
+    <Compile Include="Sql\CreateProvider.cs" />
+    <Compile Include="Sql\DeleteProvider.cs" />
+    <Compile Include="Sql\InsertProvider.cs" />
+    <Compile Include="Sql\SelectProvider.cs" />
+    <Compile Include="Sql\SqlInfo.cs" />
+    <Compile Include="Sql\SqlCache.cs" />
+    <Compile Include="Sql\UpdateProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ayx.Dapper.Extensions.Sql;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -6,76 +7,40 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions
 {
-    public class SqlGenerator
+    public class SqlBuilder
     {
 
-        public int CacheCount { get { return Cache.Count; } }
-        private List<SqlStringInfo> Cache = new List<SqlStringInfo>();
+        private SqlCache sqlCache = new SqlCache();
+        public int CacheCount { get { return sqlCache.Count; } }
 
-        public string GenerateSelect(Type type, DbTableInfo tableInfo, string fields=null, string where = null)
+        public string GetSelect(Type type, DbTableInfo tableInfo, string fields=null, string where = null)
         {
-            var cache = GetFromCache(type, "SELECT", fields, where);
-            if (cache != null) return cache.SqlString;
-
-            var tableName = MakeTableName(type, tableInfo);
-            var fieldsPart = MakeSelectFields(type,tableInfo,fields);
-            var wherePart = MakeWhere(where);
-            var result = $"SELECT {fieldsPart} FROM {tableName}{wherePart}";
-            AddToCache(type, "SELECT", fields, where, result);
-
-            return result;
+            return Select(type, tableInfo).Fields(fields).Where(where).GetSQL();
         }
 
-        public string GenerateDelete(Type type, DbTableInfo tableInfo, string where = null)
+        public SelectProvider Select(Type type,DbTableInfo tableInfo)
         {
-            var cache = GetFromCache(type, "DELETE", null, where);
-            if (cache != null) return cache.SqlString;
-
-            var tableName = MakeTableName(type, tableInfo);
-            var wherePart = MakeKeyWhere(type, tableInfo, where);
-            if (string.IsNullOrEmpty(wherePart))
-                throw new Exception("can't find primary key when generate delete command!");
-            var sql = $"DELETE FROM {tableName}{wherePart}";
-            AddToCache(type, "DELETE", null, where, sql);
-            return sql;
+            return new SelectProvider(type, tableInfo, sqlCache);
         }
 
-        public string GenerateUpdate(Type type, DbTableInfo tableInfo, string fields = null, string where = null)
+        public string GetDelete(Type type, DbTableInfo tableInfo, string where = null)
         {
-            var cache = GetFromCache(type, "UPDATE", fields, where);
-            if (cache != null) return cache.SqlString;
-
-            var tableName = MakeTableName(type, tableInfo);
-            var fieldsPart = MakeUpdateFields(type, tableInfo, fields);
-            var wherePart = MakeKeyWhere(type, tableInfo, where);
-
-            if(string.IsNullOrEmpty(wherePart))
-                throw new Exception("can't find primary key when generate delete command!");
-            var sql = $"UPDATE {tableName} SET {fieldsPart}{wherePart}";
-            AddToCache(type, "UPDATE", fields, where, sql);
-            return sql;
+            return Delete(type, tableInfo).Where(where).GetSQL();
         }
 
-        public void AddToCache(Type modelType,string verb,string param1,string param2,string sql)
+        public DeleteProvider Delete(Type type, DbTableInfo tableInfo)
         {
-            Cache.Add(new SqlStringInfo
-            {
-                ModelType = modelType,
-                Verb = verb,
-                Param1 = param1,
-                Param2 = param2,
-                SqlString = sql,
-            });
+            return new DeleteProvider(type, tableInfo, sqlCache);
         }
 
-        public SqlStringInfo GetFromCache(Type modelType,string verb,string param1,string param2)
+        public string GetUpdate(Type type, DbTableInfo tableInfo, string fields = null, string where = null)
         {
-            return Cache
-                .Where(c => c.ModelType == modelType &&
-                                  c.Verb == verb &&
-                                  c.Param1 == param1 &&
-                                  c.Param2 == param2)
-                .FirstOrDefault();
+            return Update(type, tableInfo).Fields(fields).Where(where).GetSQL();
+        }
+
+        public UpdateProvider Update(Type type, DbTableInfo tableInfo)
+        {
+            return new UpdateProvider(type, tableInfo,sqlCache);
         }
 
         public static string MakeSelectFields(Type modelType, DbTableInfo tableInfo, string fields)
