@@ -19,23 +19,25 @@ namespace Ayx.Dapper.Extensions.Sql
 
         protected override string GetParam()
         {
-            return FieldsPart + WherePart;
+            return MakeParam(FieldsPart, WherePart);
         }
 
         protected override string MakeSQL()
         {
-            return $"SELECT {FieldsPart} FROM {TableName}{WherePart}";
+            var fields = GetSelectFields(FieldsPart);
+            var where = GetWhere(WherePart);
+            return $"SELECT {fields} FROM {TableName}{where}";
         }
 
         public SelectProvider Where(string where)
         {
-            WherePart = GetWhere(where);
+            WherePart = where;
             return this;
         }
 
         public SelectProvider Fields(string fields)
         {
-            FieldsPart = GetSelectFields(fields);
+            FieldsPart = fields;
             return this;
         }
 
@@ -43,6 +45,7 @@ namespace Ayx.Dapper.Extensions.Sql
         {
             if (fields == null)
                 return "*";
+
             if (!string.IsNullOrEmpty(fields))
                 return fields;
 

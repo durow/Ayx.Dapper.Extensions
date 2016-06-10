@@ -77,5 +77,17 @@ namespace Ayx.Dapper.Extensions.Sql
             return TableInfo.TableName;
         }
 
+        public string MakeParam(params string[] paramList)
+        {
+            var result = "";
+            foreach (var param in paramList)
+            {
+                if (param == null)
+                    result += "NULL";
+                else
+                    result += param;
+            }
+            return result;
+        }
     }
 }

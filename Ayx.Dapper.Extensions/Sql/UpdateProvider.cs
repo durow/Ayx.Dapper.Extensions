@@ -18,33 +18,35 @@ namespace Ayx.Dapper.Extensions.Sql
 
         protected override string GetParam()
         {
-            return FieldsPart + WherePart;
+            return MakeParam(FieldsPart, WherePart);
         }
 
         protected override string MakeSQL()
         {
-            return $"UPDATE {TableName} SET {FieldsPart}{WherePart}";
+            var fields = GetUpdateFields();
+            var where = GetKeyWhere(WherePart);
+            return $"UPDATE {TableName} SET {fields}{where}";
         }
 
         public UpdateProvider Fields(string fields)
         {
-            FieldsPart = GetUpdateFields(fields);
+            FieldsPart = fields;
             return this;
         }
 
         public UpdateProvider Where(string where)
         {
-            WherePart = GetKeyWhere(where);
+            WherePart = where;
             return this;
         }
 
-        public string GetUpdateFields(string fields)
+        public string GetUpdateFields()
         {
             var result = "";
 
-            if (!string.IsNullOrEmpty(fields))
+            if (!string.IsNullOrEmpty(FieldsPart))
             {
-                var fieldList = fields.Split(',');
+                var fieldList = FieldsPart.Split(',');
                 foreach (var field in fieldList)
                 {
                     if (field.Contains("@") && field.Contains("="))

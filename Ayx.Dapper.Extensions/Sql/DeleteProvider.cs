@@ -18,18 +18,19 @@ namespace Ayx.Dapper.Extensions.Sql
 
         public DeleteProvider Where(string where)
         {
-            WherePart = GetKeyWhere(where);
+            WherePart = where;
             return this;
         }
 
         protected override string GetParam()
         {
-            return WherePart;
+            return MakeParam(WherePart);
         }
 
         protected override string MakeSQL()
         {
-            return $"DELETE FROM {TableName}{WherePart}";
+            var where = GetKeyWhere(WherePart);
+            return $"DELETE FROM {TableName}{where}";
         }
     }
 }
