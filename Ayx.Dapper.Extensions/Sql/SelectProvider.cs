@@ -55,20 +55,13 @@ namespace Ayx.Dapper.Extensions.Sql
                 if (!CheckDbProperty(property))
                     continue;
 
-                if (TableInfo == null)
+                if(TableInfo != null)
                 {
-                    result += property.Name + ",";
+                    result += TableInfo.GetDbFieldName(property.Name) + ",";
                     continue;
                 }
-                var fieldInfo = TableInfo.GetField(property.Name);
-                if (fieldInfo != null)
-                {
-                    if (fieldInfo.NotDbField)
-                        continue;
-                    result += fieldInfo.DbFieldName + ",";
-                    continue;
-                }
-                result += property.Name + ",";
+
+                result += DbAttributes.GetDbFieldName(property) + ",";
             }
             return result.Substring(0, result.Length - 1);
         }

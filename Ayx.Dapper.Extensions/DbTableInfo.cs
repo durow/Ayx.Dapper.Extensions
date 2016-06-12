@@ -35,5 +35,41 @@ namespace Ayx.Dapper.Extensions
                 .Where(f => f.PropertyName == propertyName)
                 .FirstOrDefault();
         }
+
+        public bool CheckDbField(string propertyName)
+        {
+            var fieldInfo = GetField(propertyName);
+            if (fieldInfo != null)
+                return !fieldInfo.NotDbField;
+            else
+                return true;
+        }
+
+        public bool CheckPrimaryKey(string propertyName)
+        {
+            var fieldInfo = GetField(propertyName);
+            if (fieldInfo != null)
+                return fieldInfo.IsPrimaryKey;
+            else
+                return false;
+        }
+
+        public bool CheckAutoIncrement(string propertyName)
+        {
+            var fieldInfo = GetField(propertyName);
+            if (fieldInfo != null)
+                return fieldInfo.IsAutoIncrement;
+            else
+                return false;
+        }
+
+        public string GetDbFieldName(string propertyName)
+        {
+            var fieldInfo = GetField(propertyName);
+            if (fieldInfo != null)
+                return fieldInfo.DbFieldName;
+            else
+                return propertyName;
+        }
     }
 }

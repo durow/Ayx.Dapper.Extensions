@@ -38,11 +38,15 @@ namespace Ayx.Dapper.Extensions.Sql
         protected abstract string GetParam();
         protected abstract string MakeSQL();
 
-        public static bool CheckDbProperty(PropertyInfo property)
+        public bool CheckDbProperty(PropertyInfo property)
         {
             if (!property.PropertyType.IsValueType && property.PropertyType != typeof(string))
                 return false;
-            return true;
+
+            if (CheckDbField(property))
+                return true;
+
+            return false;
         }
 
         public static string GetWhere(string where)
@@ -72,9 +76,38 @@ namespace Ayx.Dapper.Extensions.Sql
 
         public string GetTableName()
         {
-            if (TableInfo == null)
-                return ModelType.Name;
-            return TableInfo.TableName;
+            if (TableInfo != null)
+                return TableInfo.TableName;
+
+            var attrName = DbAttributes.GetTableName(ModelType);
+            if (!string.IsNullOrEmpty(attrName))
+                return attrName;
+
+            return ModelType.Name;
+        }
+
+        public bool CheckDbField(PropertyInfo property)
+        {
+            if (TableInfo != null)
+                return TableInfo.CheckDbField(property.Name);
+
+            return DbAttributes.CheckDbField(property);
+        }
+
+        public bool CheckPrimaryKey(PropertyInfo property)
+        {
+            if (TableInfo != null)
+                return TableInfo.CheckPrimaryKey(property.Name);
+
+            return DbAttributes.CheckPrimaryKey(property);
+        }
+
+        public bool CheckAutoIncrement(PropertyInfo property)
+        {
+            if (TableInfo != null)
+                return TableInfo.CheckAutoIncrement(property.Name);
+
+            return DbAttributes.CheckAutoIncrement(property);
         }
 
         public string MakeParam(params string[] paramList)

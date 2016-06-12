@@ -21,6 +21,19 @@ namespace Ayx.Dapper.Extensions
             return attr?.TableName??null;
         }
 
+        public static string GetDbFieldName(PropertyInfo property)
+        {
+            var fieldAttr = GetDbFieldInfo(property);
+            if (fieldAttr != null)
+            {
+                if (string.IsNullOrEmpty(fieldAttr.FieldName))
+                    return property.Name;
+                else
+                    return fieldAttr.FieldName;
+            }
+            return property.Name;
+        }
+
         public static bool CheckDbField(PropertyInfo property)
         {
             var attr = property.GetCustomAttributes(typeof(NotDbFieldAttribute), false)

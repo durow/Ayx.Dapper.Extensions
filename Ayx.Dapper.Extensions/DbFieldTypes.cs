@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions
 {
-    class DbFieldTypes
+    public class DbFieldTypes
     {
     }
 }
