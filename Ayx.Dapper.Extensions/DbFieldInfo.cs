@@ -12,7 +12,7 @@ namespace Ayx.Dapper.Extensions
         public bool IsPrimaryKey { get; private set; }
         public bool IsAutoIncrement { get; private set; }
         public bool NotDbField { get; private set; }
-        public IDbFieldType DbFieldType { get; private set; }
+        public DbFieldType DbFieldType { get; private set; }
 
         public DbFieldInfo(string propertyName, string dbFieldName = null)
         {
@@ -35,7 +35,7 @@ namespace Ayx.Dapper.Extensions
             return this;
         }
 
-        public DbFieldInfo SetDbFieldType(IDbFieldType fieldType)
+        public DbFieldInfo SetDbFieldType(DbFieldType fieldType)
         {
             DbFieldType = fieldType;
             return this;

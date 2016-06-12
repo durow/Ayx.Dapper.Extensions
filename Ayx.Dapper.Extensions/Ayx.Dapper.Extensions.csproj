@@ -45,11 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DapperExtensions.cs" />
+    <Compile Include="DbAttributes.cs" />
     <Compile Include="DbFieldInfo.cs" />
     <Compile Include="DbFieldType.cs" />
+    <Compile Include="DbFieldTypes.cs" />
     <Compile Include="DbInfo.cs" />
     <Compile Include="DbTableInfo.cs" />
-    <Compile Include="IDbFieldType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlBuilder.cs" />
     <Compile Include="Sql\SqlBase.cs" />

@@ -40,7 +40,7 @@ namespace Ayx.Dapper.Extensions.Sql
         {
             GetInsertFields();
             var identity = GetIdentity();
-            return $"INSERT INTO {TableName}({fieldsPart}) VALUES({valuesPart}){Identity}";
+            return $"INSERT INTO {TableName}({fieldsPart}) VALUES({valuesPart}){identity}";
         }
 
         public void GetInsertFields()

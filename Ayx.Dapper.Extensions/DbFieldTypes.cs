@@ -5,8 +5,7 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions
 {
-    public interface IDbFieldType
+    class DbFieldTypes
     {
-        string GetSqlString();
     }
 }
