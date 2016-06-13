@@ -74,6 +74,51 @@ namespace Ayx.Dapper.Extensions.Sql
             throw new Exception("can't find primary key when generate delete command!");
         }
 
+        public string GetFields(string fields)
+        {
+            var result = "";
+
+            if (string.IsNullOrEmpty(fields))
+            {
+                foreach (var property in ModelType.GetProperties())
+                {
+                    result += GetFieldName(property);
+                }
+            }
+            else
+            {
+                foreach (var field in fields.Split(','))
+                {
+                    var property = ModelType
+                        .GetProperties()
+                        .Where(p => p.Name == field)
+                        .FirstOrDefault();
+                    if (property == null)
+                        result += field + ",";
+                    else
+                        result += GetFieldName(property);
+                }
+            }
+            if (result.Length > 1)
+                return result.Substring(0, result.Length - 1);
+            else
+                return null;
+        }
+
+        public string GetFieldName(PropertyInfo property)
+        {
+            if (property == null) return "";
+
+            if (!CheckDbProperty(property))
+                return "";
+
+            if (TableInfo != null)
+            {
+                return TableInfo.GetDbFieldName(property.Name) + ",";
+            }
+            return DbAttributes.GetDbFieldName(property) + ",";
+        }
+
         public string GetTableName()
         {
             if (TableInfo != null)

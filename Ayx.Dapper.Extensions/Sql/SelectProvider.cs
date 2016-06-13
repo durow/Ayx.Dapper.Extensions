@@ -46,24 +46,7 @@ namespace Ayx.Dapper.Extensions.Sql
             if (fields == null)
                 return "*";
 
-            if (!string.IsNullOrEmpty(fields))
-                return fields;
-
-            var result = "";
-            foreach (var property in ModelType.GetProperties())
-            {
-                if (!CheckDbProperty(property))
-                    continue;
-
-                if(TableInfo != null)
-                {
-                    result += TableInfo.GetDbFieldName(property.Name) + ",";
-                    continue;
-                }
-
-                result += DbAttributes.GetDbFieldName(property) + ",";
-            }
-            return result.Substring(0, result.Length - 1);
+            return GetFields(fields);
         }
     }
 }
