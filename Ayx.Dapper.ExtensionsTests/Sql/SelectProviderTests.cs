@@ -27,11 +27,11 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var test3 = select.Fields("ID,StringProperty,IntProperty").GetSelectFields();
             var test4 = select.Fields("ID,StringProperty,IntField").GetSelectFields();
             var test5 = select2.Fields("").GetSelectFields();
-            var test6 = select2.Fields("ID,StringProperty,IntField").GetSelectFields();
+            var test6 = select2.Fields("ID,StringProperty,IntProperty").GetSelectFields();
 
             var expected1 = @"ID,StringProperty,IntField AS IntProperty";
             var expected2 = @"ID,StringProperty,IntField";
-            var expected3 = @"ID,StringProperty,IntField AS IntKey";
+            var expected3 = @"ID,StringProperty,IntKey AS IntProperty";
 
             Assert.AreEqual("*", test1);
             Assert.AreEqual(expected1, test2);
