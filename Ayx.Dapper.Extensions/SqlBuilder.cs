@@ -12,45 +12,44 @@ namespace Ayx.Dapper.Extensions
         private SqlCache sqlCache = new SqlCache();
         public int CacheCount { get { return sqlCache.Count; } }
 
-
-        public string GetSelect(Type type, DbTableInfo tableInfo, string fields=null, string where = null)
+        public string GetSelect<T>(DbTableInfo tableInfo, string fields=null, string where = null)
         {
-            return Select(type, tableInfo).Fields(fields).Where(where).GetSQL();
+            return Select<T>( tableInfo).Fields(fields).Where(where).GetSQL();
         }
 
-        public SelectProvider Select(Type type,DbTableInfo tableInfo)
+        public SelectProvider<T> Select<T>(DbTableInfo tableInfo)
         {
-            return new SelectProvider(type, tableInfo, sqlCache);
+            return new SelectProvider<T>(tableInfo, sqlCache);
         }
 
-        public string GetDelete(Type type, DbTableInfo tableInfo, string where = null)
+        public string GetDelete<T>(DbTableInfo tableInfo, string where = null)
         {
-            return Delete(type, tableInfo).Where(where).GetSQL();
+            return Delete<T>(tableInfo).Where(where).GetSQL();
         }
 
-        public DeleteProvider Delete(Type type, DbTableInfo tableInfo)
+        public DeleteProvider<T> Delete<T>(DbTableInfo tableInfo)
         {
-            return new DeleteProvider(type, tableInfo, sqlCache);
+            return new DeleteProvider<T>(tableInfo, sqlCache);
         }
 
-        public string GetUpdate(Type type, DbTableInfo tableInfo, string fields = null, string where = null)
+        public string GetUpdate<T>(DbTableInfo tableInfo, string fields = null, string where = null)
         {
-            return Update(type, tableInfo).Fields(fields).Where(where).GetSQL();
+            return Update<T>(tableInfo).Fields(fields).Where(where).GetSQL();
         }
 
-        public UpdateProvider Update(Type type, DbTableInfo tableInfo)
+        public UpdateProvider<T> Update<T>(DbTableInfo tableInfo)
         {
-            return new UpdateProvider(type, tableInfo,sqlCache);
+            return new UpdateProvider<T>(tableInfo,sqlCache);
         }
 
-        public string GetInsert(Type type, DbTableInfo tableInfo, string fields = null)
+        public string GetInsert<T>(DbTableInfo tableInfo, string fields = null)
         {
-            return Insert(type, tableInfo).Fields(fields).GetSQL();
+            return Insert<T>(tableInfo).Fields(fields).GetSQL();
         }
 
-        public InsertProvider Insert(Type type, DbTableInfo tableInfo)
+        public InsertProvider<T> Insert<T>(DbTableInfo tableInfo)
         {
-            return new InsertProvider(type, tableInfo, sqlCache);
+            return new InsertProvider<T>(tableInfo, sqlCache);
         } 
     }
 }

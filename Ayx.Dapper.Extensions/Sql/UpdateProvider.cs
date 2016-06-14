@@ -6,13 +6,13 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
 {
-    public class UpdateProvider:SqlBase
+    public class UpdateProvider<T>:SqlBase
     {
         public string FieldsPart { get; set; }
         public string WherePart { get; set; }
 
-        public UpdateProvider(Type type, DbTableInfo tableInfo, SqlCache cache)
-            :base(type,tableInfo,cache)
+        public UpdateProvider(DbTableInfo tableInfo, SqlCache cache)
+            :base(typeof(T),tableInfo,cache)
         {
             Verb = "UPDATE";
         }
@@ -29,13 +29,13 @@ namespace Ayx.Dapper.Extensions.Sql
             return $"UPDATE {TableName} SET {fields}{where}";
         }
 
-        public UpdateProvider Fields(string fields)
+        public UpdateProvider<T> Fields(string fields)
         {
             FieldsPart = fields;
             return this;
         }
 
-        public UpdateProvider Where(string where)
+        public UpdateProvider<T> Where(string where)
         {
             WherePart = where;
             return this;

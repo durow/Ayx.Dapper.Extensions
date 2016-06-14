@@ -19,8 +19,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
                 new DbFieldInfo("IntProperty", "IntKey"),
                 new DbFieldInfo("NotField").SetNotDbField());
 
-            var select = new SelectProvider(type, null, null);
-            var select2 = new SelectProvider(type, tableInfo, null);
+            var select = new SelectProvider<AttributeModel>( null, null);
+            var select2 = new SelectProvider<AttributeModel>(tableInfo, null);
 
             var test1 = select.Fields(null).GetSelectFields();
             var test2 = select.Fields("").GetSelectFields();

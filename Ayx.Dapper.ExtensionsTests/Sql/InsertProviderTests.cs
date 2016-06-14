@@ -19,7 +19,7 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
                 new DbFieldInfo("IntProperty", "IntField"),
                 new DbFieldInfo("NotField").SetNotDbField(),
                 new DbFieldInfo("ID").SetPrimaryKey().SetAutoIncrement());
-            var insert = new InsertProvider(typeof(TestModel), tableInfo, new SqlCache());
+            var insert = new InsertProvider<TestModel>(tableInfo, new SqlCache());
 
             var actual1 = insert.GetSQL();
             var expected1 = @"INSERT INTO TestModel(StringProperty,IntField) VALUES(@StringProperty,@IntProperty)";
@@ -34,7 +34,7 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
                 new DbFieldInfo("IntProperty", "IntField"),
                 new DbFieldInfo("NotField").SetNotDbField(),
                 new DbFieldInfo("ID").SetPrimaryKey().SetAutoIncrement());
-            var insert = new InsertProvider(typeof(TestModel), tableInfo, new SqlCache()).Fields("IntProperty");
+            var insert = new InsertProvider<TestModel>(tableInfo, new SqlCache()).Fields("IntProperty");
 
             var actual2 = insert.GetSQL();
             var expected2 = @"INSERT INTO TestModel(IntField) VALUES(@IntProperty)";
@@ -51,8 +51,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
                 new DbFieldInfo("NotField").SetNotDbField(),
                 new DbFieldInfo("ID").SetPrimaryKey().SetAutoIncrement());
 
-            var insert = new InsertProvider(type, null, null);
-            var insert2 = new InsertProvider(type, tableInfo, null);
+            var insert = new InsertProvider<AttributeModel>(null, null);
+            var insert2 = new InsertProvider<TestModel>(tableInfo, null);
             var test1 = insert.MakeEmptyFields();
             var test2 = insert2.MakeEmptyFields();
             var test3 = insert.Fields("IntProperty").MakeFields();

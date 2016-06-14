@@ -6,17 +6,17 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
 {
-    public class DeleteProvider : SqlBase
+    public class DeleteProvider<T> : SqlBase
     {
         public string WherePart { get; set; }
 
-        public DeleteProvider(Type type, DbTableInfo tableInfo, SqlCache cache)
-            : base(type, tableInfo, cache)
+        public DeleteProvider(DbTableInfo tableInfo, SqlCache cache)
+            : base(typeof(T), tableInfo, cache)
         {
             Verb = "DELETE";
         }
 
-        public DeleteProvider Where(string where)
+        public DeleteProvider<T> Where(string where)
         {
             WherePart = where;
             return this;

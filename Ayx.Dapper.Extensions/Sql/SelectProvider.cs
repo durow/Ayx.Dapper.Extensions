@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -7,13 +8,13 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
 {
-    public class SelectProvider:SqlBase
+    public class SelectProvider<T> : SqlBase
     {
         public string FieldsPart { get; set; }
         public string WherePart { get; set; }
 
-        public SelectProvider(Type type, DbTableInfo tableInfo, SqlCache cache)
-            : base(type, tableInfo, cache)
+        public SelectProvider(DbTableInfo tableInfo, SqlCache cache)
+            : base(typeof(T), tableInfo, cache)
         {
             Verb = "SELECT";
         }
@@ -30,13 +31,13 @@ namespace Ayx.Dapper.Extensions.Sql
             return $"SELECT {fields} FROM {TableName}{where}";
         }
 
-        public SelectProvider Where(string where)
+        public SelectProvider<T> Where(string where)
         {
             WherePart = where;
             return this;
         }
 
-        public SelectProvider Fields(string fields)
+        public SelectProvider<T> Fields(string fields)
         {
             FieldsPart = fields;
             return this;
@@ -74,7 +75,7 @@ namespace Ayx.Dapper.Extensions.Sql
             if (string.IsNullOrEmpty(dbField))
                 return property.Name;
 
-            if(dbField != property.Name)
+            if (dbField != property.Name)
                 return dbField + " AS " + property.Name;
 
             return property.Name;
@@ -82,7 +83,7 @@ namespace Ayx.Dapper.Extensions.Sql
 
         public string GetSelectField(string field)
         {
-            if(TableInfo != null)
+            if (TableInfo != null)
             {
                 var dbField = TableInfo.GetField(field);
                 if (dbField != null && dbField.DbFieldName != field)
@@ -92,7 +93,7 @@ namespace Ayx.Dapper.Extensions.Sql
             }
 
             var property = GetProperty(field);
-            if(property != null)
+            if (property != null)
             {
                 var dbField = DbAttributes.GetDbFieldName(property);
                 if (dbField == field)
@@ -102,6 +103,17 @@ namespace Ayx.Dapper.Extensions.Sql
             }
 
             return field;
+        }
+
+        public IEnumerable<T> Go(
+            object param = null, 
+            IDbTransaction transaction = null, 
+            bool buffered = true,
+            int? timeOut = null, 
+            CommandType? commandType = null)
+        {
+            var sql = GetSQL();
+            return Connection.Query<T>(sql, param, transaction, buffered, timeOut, commandType);
         }
     }
 }

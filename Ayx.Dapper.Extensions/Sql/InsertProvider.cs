@@ -5,24 +5,24 @@ using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
 {
-    public class InsertProvider:SqlBase
+    public class InsertProvider<T>:SqlBase
     {
         public string FieldsPart { get; private set; }
         public bool Identity { get; private set; }
 
-        public InsertProvider(Type modelType, DbTableInfo tableInfo, SqlCache cache)
-            :base(modelType,tableInfo,cache)
+        public InsertProvider(DbTableInfo tableInfo, SqlCache cache)
+            :base(typeof(T),tableInfo,cache)
         {
             Verb = "INSERT";
         }
 
-        public InsertProvider Fields(string fields)
+        public InsertProvider<T> Fields(string fields)
         {
             FieldsPart = fields;
             return this;
         }
 
-        public InsertProvider ReturnIdentity()
+        public InsertProvider<T> ReturnIdentity()
         {
             Identity = true;
             return this;

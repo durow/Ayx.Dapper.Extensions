@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data;
+using Dapper;
+using Ayx.Dapper.Extensions.Sql;
 
 namespace Ayx.Dapper.Extensions
 {
     public class DbInfo
     {
-
         private static DbInfo _default;
         public static DbInfo Default
         {
@@ -60,6 +61,14 @@ namespace Ayx.Dapper.Extensions
         public void Clear()
         {
             tableList.Clear();
+        }
+
+        public SelectProvider<T> Select<T>(IDbConnection connection)
+        {
+            var tableInfo = GetTable<T>();
+            var result = SqlGenerator.Select<T>(tableInfo);
+            result.Connection = connection;
+            return result;
         }
     }
 }

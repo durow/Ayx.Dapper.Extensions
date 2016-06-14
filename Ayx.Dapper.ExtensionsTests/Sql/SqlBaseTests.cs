@@ -20,8 +20,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             if (intProperty == null || modelProperty == null)
                 Assert.Fail();
 
-            Assert.IsFalse(new SelectProvider(type, null, new SqlCache()).CheckDbProperty(modelProperty));
-            Assert.IsTrue(new SelectProvider(type, null, new SqlCache()).CheckDbProperty(intProperty));
+            Assert.IsFalse(new SelectProvider<TestModel>(null, new SqlCache()).CheckDbProperty(modelProperty));
+            Assert.IsTrue(new SelectProvider<TestModel>(null, new SqlCache()).CheckDbProperty(intProperty));
         }
 
         [TestMethod()]
@@ -30,9 +30,9 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var type = typeof(AttributeModel);
             var tableInfo = new DbTableInfo(type, "TestTable");
 
-            var test = new SelectProvider(type, tableInfo, new SqlCache());
-            var test2 = new SelectProvider(type, null, new SqlCache());
-            var test3 = new SelectProvider(typeof(TestModel), null, new SqlCache());
+            var test = new SelectProvider<AttributeModel>(tableInfo, new SqlCache());
+            var test2 = new SelectProvider<AttributeModel>(null, new SqlCache());
+            var test3 = new SelectProvider<TestModel>( null, new SqlCache());
 
             var actual1 = test.GetTableName();
             var actual2 = test2.GetTableName();
@@ -50,8 +50,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var tableInfo = new DbTableInfo(type).SetFields(
                 new DbFieldInfo("NotField").SetNotDbField());
 
-            var test1 = new InsertProvider(type, tableInfo, new SqlCache());
-            var test2 = new InsertProvider(typeof(AttributeModel), null, new SqlCache());
+            var test1 = new InsertProvider<TestModel>(tableInfo, new SqlCache());
+            var test2 = new InsertProvider<AttributeModel>(null, new SqlCache());
 
             var intProperty = type.GetProperties().Where(p => p.Name == "IntProperty").FirstOrDefault();
             var notProperty = type.GetProperties().Where(p => p.Name == "NotField").FirstOrDefault();
@@ -69,8 +69,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var tableInfo = new DbTableInfo(type).SetFields(
                 new DbFieldInfo("ID").SetPrimaryKey());
 
-            var test1 = new InsertProvider(type, tableInfo, new SqlCache());
-            var test2 = new InsertProvider(typeof(AttributeModel), null, new SqlCache());
+            var test1 = new InsertProvider<TestModel>(tableInfo, new SqlCache());
+            var test2 = new InsertProvider<AttributeModel>( null, new SqlCache());
 
             var intProperty = type.GetProperties().Where(p => p.Name == "IntProperty").FirstOrDefault();
             var idProperty = type.GetProperties().Where(p => p.Name == "ID").FirstOrDefault();
@@ -88,8 +88,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var tableInfo = new DbTableInfo(type).SetFields(
                 new DbFieldInfo("ID").SetAutoIncrement());
 
-            var test1 = new InsertProvider(type, tableInfo, new SqlCache());
-            var test2 = new InsertProvider(typeof(AttributeModel), null, new SqlCache());
+            var test1 = new InsertProvider<TestModel>( tableInfo, new SqlCache());
+            var test2 = new InsertProvider<AttributeModel>( null, new SqlCache());
 
             var intProperty = type.GetProperties().Where(p => p.Name == "IntProperty").FirstOrDefault();
             var idProperty = type.GetProperties().Where(p => p.Name == "ID").FirstOrDefault();
@@ -117,8 +117,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var tableInfo = new DbTableInfo(type).SetFields(
                 new DbFieldInfo("IntProperty", "IntKey").SetPrimaryKey());
 
-            var test = new SelectProvider(type, tableInfo, new SqlCache());
-            var test2 = new SelectProvider(type, null, null);
+            var test = new SelectProvider<AttributeModel>( tableInfo, new SqlCache());
+            var test2 = new SelectProvider<AttributeModel>(null, null);
             var actual = test.GetKeyWhere();
             var actual2 = test2.GetKeyWhere();
 
@@ -133,7 +133,7 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             var tableInfo = new DbTableInfo(type).SetFields(
                 new DbFieldInfo("IntProperty", "IntKey"),
                 new DbFieldInfo("NotField").SetNotDbField());
-            var test = new InsertProvider(type, tableInfo, null);
+            var test = new InsertProvider<AttributeModel>(tableInfo, null);
             var actual1 = test.GetFields(null);
             var actual2 = test.GetFields("ID,IntProperty");
 
@@ -152,8 +152,8 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             if (property == null)
                 Assert.Fail();
 
-            var test1 = new SelectProvider(type, tableInfo, null);
-            var test2 = new SelectProvider(type, null, null);
+            var test1 = new SelectProvider<AttributeModel>(tableInfo, null);
+            var test2 = new SelectProvider<AttributeModel>(null, null);
 
             var actual1 = test1.GetFieldName(property);
             var actual2 = test2.GetFieldName(property);
@@ -165,7 +165,7 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
         [TestMethod()]
         public void GetPropertyTest()
         {
-            var test = new SelectProvider(typeof(AttributeModel), null, null);
+            var test = new SelectProvider<AttributeModel>( null, null);
             var actual = test.GetProperty("StringProperty");
             if (actual == null) Assert.Fail();
 

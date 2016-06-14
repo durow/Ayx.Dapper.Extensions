@@ -20,9 +20,9 @@ namespace Ayx.Dapper.Extensions.Tests
                 new DbFieldInfo("IntProperty", "IntField"),
                 new DbFieldInfo("NotField").SetNotDbField());
 
-            var test1 = sqlGen.GetSelect(type, tableInfo);
-            var test2 = sqlGen.GetSelect(type, tableInfo, "");
-            var test3 = sqlGen.GetSelect(type, tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
+            var test1 = sqlGen.GetSelect<TestModel>(tableInfo);
+            var test2 = sqlGen.GetSelect<TestModel>(tableInfo, "");
+            var test3 = sqlGen.GetSelect<TestModel>(tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
 
             var expected1 = "SELECT * FROM TestModel";
             var expected2 = "SELECT ID,StringProperty,IntField AS IntProperty FROM TestModel";
@@ -33,7 +33,7 @@ namespace Ayx.Dapper.Extensions.Tests
             Assert.AreEqual(expected3, test3);
             Assert.AreEqual(3, sqlGen.CacheCount);
 
-            var test4 = sqlGen.GetSelect(type, tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
+            var test4 = sqlGen.GetSelect<TestModel>(tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
             Assert.ReferenceEquals(test3, test4);
             Assert.AreEqual(3, sqlGen.CacheCount);
         }
@@ -48,8 +48,8 @@ namespace Ayx.Dapper.Extensions.Tests
                 new DbFieldInfo("NotField").SetNotDbField(),
                 new DbFieldInfo("ID").SetPrimaryKey());
 
-            var test1 = gen.GetDelete(type, tableInfo);
-            var test2 = gen.GetDelete(type, tableInfo, "ID>10");
+            var test1 = gen.GetDelete<TestModel>(tableInfo);
+            var test2 = gen.GetDelete<TestModel>(tableInfo, "ID>10");
             var expected1 = "DELETE FROM TestModel WHERE ID=@ID";
             var expected2 = "DELETE FROM TestModel WHERE ID>10";
 
@@ -57,7 +57,7 @@ namespace Ayx.Dapper.Extensions.Tests
             Assert.AreEqual(expected2, test2);
             Assert.AreEqual(2, gen.CacheCount);
 
-            var test3 = gen.GetDelete(type, tableInfo, "ID>10");
+            var test3 = gen.GetDelete<TestModel>(tableInfo, "ID>10");
             Assert.ReferenceEquals(test2, test3);
             Assert.AreEqual(2, gen.CacheCount);
         }
@@ -73,7 +73,7 @@ namespace Ayx.Dapper.Extensions.Tests
 
             try
             {
-                var test1 = gen.GetDelete(type, tableInfo);
+                var test1 = gen.GetDelete<TestModel>(tableInfo);
                 Assert.Fail();
             }
             catch (Exception e)
@@ -83,7 +83,7 @@ namespace Ayx.Dapper.Extensions.Tests
 
             try
             {
-                var test2 = gen.GetDelete(type, null);
+                var test2 = gen.GetDelete<TestModel>(null);
                 Assert.Fail();
             }
             catch (Exception e)
@@ -102,9 +102,9 @@ namespace Ayx.Dapper.Extensions.Tests
                 new DbFieldInfo("IntProperty", "IntField"),
                 new DbFieldInfo("NotField").SetNotDbField());
 
-            var test1 = gen.GetUpdate(type, tableInfo);
-            var test2 = gen.GetUpdate(type, tableInfo, "StringProperty=@StringProperty", "ID>9");
-            var test3 = gen.GetUpdate(type, tableInfo, "IntProperty");
+            var test1 = gen.GetUpdate<TestModel>(tableInfo);
+            var test2 = gen.GetUpdate<TestModel>(tableInfo, "StringProperty=@StringProperty", "ID>9");
+            var test3 = gen.GetUpdate<TestModel>(tableInfo, "IntProperty");
 
             var expected1 = "UPDATE TestModel SET StringProperty=@StringProperty,IntField=@IntProperty WHERE ID=@ID";
             var expected2 = "UPDATE TestModel SET StringProperty=@StringProperty WHERE ID>9";
@@ -115,7 +115,7 @@ namespace Ayx.Dapper.Extensions.Tests
             Assert.AreEqual(expected3, test3);
             Assert.AreEqual(3, gen.CacheCount);
 
-            var test4 = gen.GetUpdate(type, tableInfo);
+            var test4 = gen.GetUpdate<TestModel>(tableInfo);
             Assert.ReferenceEquals(test1, test4);
             Assert.AreEqual(3, gen.CacheCount);
         }
