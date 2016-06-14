@@ -41,5 +41,31 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
 
             Assert.AreEqual(expected2, actual2);
         }
+
+        [TestMethod()]
+        public void MakeFieldsTest()
+        {
+            var type = typeof(AttributeModel);
+            var tableInfo = new DbTableInfo(type).SetFields(
+                new DbFieldInfo("IntProperty", "IntKey"),
+                new DbFieldInfo("NotField").SetNotDbField(),
+                new DbFieldInfo("ID").SetPrimaryKey().SetAutoIncrement());
+
+            var insert = new InsertProvider(type, null, null);
+            var insert2 = new InsertProvider(type, tableInfo, null);
+            var test1 = insert.MakeEmptyFields();
+            var test2 = insert2.MakeEmptyFields();
+            var test3 = insert.Fields("IntProperty").MakeFields();
+            var test4 = insert2.Fields("IntProperty").MakeFields();
+
+            Assert.AreEqual("StringProperty,IntField", test1.Fields);
+            Assert.AreEqual("@StringProperty,@IntProperty", test1.Values);
+            Assert.AreEqual("StringProperty,IntKey", test2.Fields);
+            Assert.AreEqual("@StringProperty,@IntProperty", test2.Values);
+            Assert.AreEqual("IntField", test3.Fields);
+            Assert.AreEqual("@IntProperty", test3.Values);
+            Assert.AreEqual("IntKey", test4.Fields);
+            Assert.AreEqual("@IntProperty", test4.Values);
+        }
     }
 }

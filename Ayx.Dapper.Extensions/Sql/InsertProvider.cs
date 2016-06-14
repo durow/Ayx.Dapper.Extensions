@@ -10,9 +10,6 @@ namespace Ayx.Dapper.Extensions.Sql
         public string FieldsPart { get; private set; }
         public bool Identity { get; private set; }
 
-        private string fieldsPart;
-        private string valuesPart;
-
         public InsertProvider(Type modelType, DbTableInfo tableInfo, SqlCache cache)
             :base(modelType,tableInfo,cache)
         {
@@ -38,51 +35,39 @@ namespace Ayx.Dapper.Extensions.Sql
 
         protected override string MakeSQL()
         {
-            GetInsertFields();
+            var fieldsAndValues = GetInsertFields();
             var identity = GetIdentity();
-            return $"INSERT INTO {TableName}({fieldsPart}) VALUES({valuesPart}){identity}";
+            return $"INSERT INTO {TableName}({fieldsAndValues.Fields}) VALUES({fieldsAndValues.Values}){identity}";
         }
 
-        public void GetInsertFields()
+        public FieldsAndValues GetInsertFields()
         {
 
             if(string.IsNullOrEmpty(FieldsPart))
-                MakeEmptyFields();
+                return MakeEmptyFields();
             else
-                MakeFields();
-
-            if (this.fieldsPart.Length > 0)
-                this.fieldsPart = this.fieldsPart.Substring(0, this.fieldsPart.Length - 1);
-            if (valuesPart.Length > 0)
-                valuesPart = valuesPart.Substring(0, valuesPart.Length - 1);
+                return MakeFields();
         }
 
-        private void MakeEmptyFields()
+        public FieldsAndValues MakeEmptyFields()
         {
+            var result = new FieldsAndValues();
             foreach (var property in ModelType.GetProperties())
             {
                 if (!CheckDbProperty(property))
                     continue;
+                if (CheckAutoIncrement(property))
+                    continue;
 
-                if (TableInfo != null)
-                {
-                    var field = TableInfo.GetField(property.Name);
-                    if (field != null)
-                    {
-                        if (field.NotDbField) continue;
-                        if (field.IsAutoIncrement) continue;
-
-                        AddField(field.PropertyName, field.DbFieldName);
-                        continue;
-                    }
-                }
-
-                AddField(property.Name);
+                var dbField = GetFieldName(property);
+                result.Add(property.Name, dbField);
             }
+            return result;
         }
 
-        private void MakeFields()
+        public FieldsAndValues MakeFields()
         {
+            var result = new FieldsAndValues();
             foreach (var field in FieldsPart.Split(','))
             {
                 if(TableInfo != null)
@@ -93,21 +78,24 @@ namespace Ayx.Dapper.Extensions.Sql
                         if (fieldInfo.NotDbField) continue;
                         if (fieldInfo.IsAutoIncrement) continue;
 
-                        AddField(fieldInfo.PropertyName, fieldInfo.DbFieldName);
+                        result.Add(field, fieldInfo.DbFieldName);
                         continue;
                     }
                 }
-                AddField(field);
+                var property = GetProperty(field);
+                if (property == null)
+                    result.Add(field);
+                else
+                {
+                    if (!DbAttributes.CheckDbField(property))
+                        continue;
+                    if (DbAttributes.CheckAutoIncrement(property))
+                        continue;
+                    var dbFieldName = DbAttributes.GetDbFieldName(property);
+                    result.Add(property.Name, dbFieldName);
+                }
             }
-        }
-
-        private void AddField(string propertyName, string fieldName = null)
-        {
-            if (string.IsNullOrEmpty(fieldName))
-                fieldName = propertyName;
-
-            fieldsPart += fieldName + ",";
-            valuesPart += $"@{propertyName},";
+            return result;
         }
 
         public string GetIdentity()
@@ -115,6 +103,40 @@ namespace Ayx.Dapper.Extensions.Sql
             if (!Identity) return "";
 
             return ";SELECT @@IDENTITY";
+        }
+    }
+
+    public sealed class FieldsAndValues
+    {
+        public string Fields
+        {
+            get
+            {
+                return SqlBase.JoinFields(_fieldList);
+            }
+        }
+        public string Values
+        {
+            get
+            {
+                return SqlBase.JoinFields(_valuesList);
+            }
+        }
+
+        private List<string> _fieldList = new List<string>();
+        private List<string> _valuesList = new List<string>();
+
+        public FieldsAndValues Add(string propertyName, string fieldName = null)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return this;
+
+            if (string.IsNullOrEmpty(fieldName))
+                fieldName = propertyName;
+
+            _fieldList.Add(fieldName);
+            _valuesList.Add("@" + propertyName);
+            return this;
         }
     }
 }

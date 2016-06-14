@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
@@ -24,7 +25,7 @@ namespace Ayx.Dapper.Extensions.Sql
 
         protected override string MakeSQL()
         {
-            var fields = GetSelectFields(FieldsPart);
+            var fields = GetSelectFields();
             var where = GetWhere(WherePart);
             return $"SELECT {fields} FROM {TableName}{where}";
         }
@@ -41,12 +42,66 @@ namespace Ayx.Dapper.Extensions.Sql
             return this;
         }
 
-        public string GetSelectFields(string fields)
+        public string GetSelectFields()
         {
-            if (fields == null)
+            if (FieldsPart == null)
                 return "*";
 
-            return GetFields(fields);
+            var result = new List<string>();
+            if (string.IsNullOrEmpty(FieldsPart))
+            {
+                foreach (var property in ModelType.GetProperties())
+                {
+                    result.Add(GetSelectField(property));
+                }
+            }
+            else
+            {
+                foreach (var field in FieldsPart.Split(','))
+                {
+                    result.Add(GetSelectField(field));
+                }
+            }
+            return JoinFields(result);
+        }
+
+        public string GetSelectField(PropertyInfo property)
+        {
+            if (!CheckDbProperty(property)) return "";
+
+            var dbField = GetFieldName(property);
+
+            if (string.IsNullOrEmpty(dbField))
+                return property.Name;
+
+            if(dbField != property.Name)
+                return dbField + " AS " + property.Name;
+
+            return property.Name;
+        }
+
+        public string GetSelectField(string field)
+        {
+            if(TableInfo != null)
+            {
+                var dbField = TableInfo.GetField(field);
+                if (dbField != null && dbField.DbFieldName != field)
+                    return dbField.DbFieldName + " AS " + field;
+                else
+                    return field;
+            }
+
+            var property = GetProperty(field);
+            if(property != null)
+            {
+                var dbField = DbAttributes.GetDbFieldName(property);
+                if (dbField == field)
+                    return field;
+                else
+                    return dbField + " AS " + field;
+            }
+
+            return field;
         }
     }
 }

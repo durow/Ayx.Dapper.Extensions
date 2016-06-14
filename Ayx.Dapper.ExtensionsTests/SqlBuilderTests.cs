@@ -25,7 +25,7 @@ namespace Ayx.Dapper.Extensions.Tests
             var test3 = sqlGen.GetSelect(type, tableInfo, "StringProperty", "IntField>34 AND StringProperty=@StringProperty ORDER BY IntField");
 
             var expected1 = "SELECT * FROM TestModel";
-            var expected2 = "SELECT ID,StringProperty,IntField FROM TestModel";
+            var expected2 = "SELECT ID,StringProperty,IntField AS IntProperty FROM TestModel";
             var expected3 = "SELECT StringProperty FROM TestModel WHERE IntField>34 AND StringProperty=@StringProperty ORDER BY IntField";
 
             Assert.AreEqual(expected1, test1);
