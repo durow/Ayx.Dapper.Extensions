@@ -65,6 +65,9 @@ namespace Ayx.Dapper.Extensions.Sql
 
         public string GetUpdateField(string propertyName)
         {
+            if (propertyName.Contains("@") && propertyName.Contains("="))
+                return propertyName;
+
             var property = GetProperty(propertyName);
             if(property != null)
             {
