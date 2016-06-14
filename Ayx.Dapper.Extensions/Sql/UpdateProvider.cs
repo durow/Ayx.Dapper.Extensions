@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
@@ -42,48 +43,45 @@ namespace Ayx.Dapper.Extensions.Sql
 
         public string GetUpdateFields()
         {
-            var result = "";
+            var result = new List<string>();
 
-            if (!string.IsNullOrEmpty(FieldsPart))
+            if (string.IsNullOrEmpty(FieldsPart))
             {
-                var fieldList = FieldsPart.Split(',');
-                foreach (var field in fieldList)
+                
+                foreach (var property in ModelType.GetProperties())
                 {
-                    if (field.Contains("@") && field.Contains("="))
-                    {
-                        result += $"{field},";
-                        continue;
-                    }
-                    result += GetUpdateField(field);
+                    result.Add(GetUpdateField(property));
                 }
             }
             else
             {
-                foreach (var property in ModelType.GetProperties())
+                foreach (var field in FieldsPart.Split(','))
                 {
-                    if (!CheckDbProperty(property))
-                        continue;
-
-                    result += GetUpdateField(property.Name);
+                    result.Add(GetUpdateField(field));
                 }
             }
-
-            return result.Substring(0, result.Length - 1);
+            return JoinFields(result);
         }
 
         public string GetUpdateField(string propertyName)
         {
-            if (TableInfo != null)
+            var property = GetProperty(propertyName);
+            if(property != null)
             {
-                var fieldInfo = TableInfo.GetField(propertyName);
-                if (fieldInfo != null)
-                {
-                    if (fieldInfo.IsAutoIncrement) return "";
-                    if (fieldInfo.NotDbField) return "";
-                    return $"{fieldInfo.DbFieldName}=@{fieldInfo.PropertyName},";
-                }
+                return GetUpdateField(property);
             }
-            return $"{propertyName}=@{propertyName},";
+            return null;
+        }
+
+        public string GetUpdateField(PropertyInfo property)
+        {
+            if (!CheckDbProperty(property))
+                return null;
+            if (CheckAutoIncrement(property))
+                return null;
+            
+            var dbFieldName = GetFieldName(property);
+            return $"{dbFieldName}=@{property.Name}";
         }
     }
 }
