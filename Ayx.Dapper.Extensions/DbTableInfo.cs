@@ -71,5 +71,10 @@ namespace Ayx.Dapper.Extensions
             else
                 return propertyName;
         }
+
+        public DbFieldInfo GetPrimaryKeyField()
+        {
+            return FieldInfoList.Where(f => f.IsPrimaryKey).FirstOrDefault();
+        }
     }
 }

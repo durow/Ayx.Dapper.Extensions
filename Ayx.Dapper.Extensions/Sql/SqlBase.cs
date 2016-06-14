@@ -9,6 +9,8 @@ namespace Ayx.Dapper.Extensions.Sql
 {
     public abstract class SqlBase
     {
+        #region Properties
+
         public string Verb { get; set; }
         public string TableName { get; set; }
         public Type ModelType { get; set; }
@@ -16,13 +18,26 @@ namespace Ayx.Dapper.Extensions.Sql
         public IDbConnection Connection { get; set; }
         public SqlCache Cache { get; set; }
 
+        #endregion
+
         public SqlBase(Type type, DbTableInfo tableInfo, SqlCache cache)
         {
             ModelType = type;
             TableInfo = tableInfo;
             Cache = cache;
             TableName = GetTableName();
+            if (Cache == null)
+                Cache = new SqlCache();
         }
+
+        #region Abstract Methods
+
+        protected abstract string GetParam();
+        protected abstract string MakeSQL();
+
+        #endregion
+
+        #region Public Methods
 
         public string GetSQL()
         {
@@ -34,9 +49,6 @@ namespace Ayx.Dapper.Extensions.Sql
             Cache.Add(ModelType, Verb, param, sql);
             return sql;
         }
-
-        protected abstract string GetParam();
-        protected abstract string MakeSQL();
 
         public bool CheckDbProperty(PropertyInfo property)
         {
@@ -56,19 +68,29 @@ namespace Ayx.Dapper.Extensions.Sql
             return " WHERE " + where;
         }
 
-        public string GetKeyWhere(string where)
+        public string GetKeyWhere(string where = null)
         {
             if (!string.IsNullOrEmpty(where))
                 return GetWhere(where);
-            if (TableInfo == null)
-                throw new Exception("can't find primary key when generate delete command!");
+
+            if (TableInfo != null)
+            {
+                var field = TableInfo.GetPrimaryKeyField();
+                if (field != null)
+                    return " WHERE " + field.DbFieldName + "=@" + field.PropertyName;
+            }
 
             foreach (var property in ModelType.GetProperties())
             {
-                var fieldInfo = TableInfo.GetField(property.Name);
-                if (fieldInfo == null) continue;
-                if (fieldInfo.IsPrimaryKey)
-                    return " WHERE " + fieldInfo.DbFieldName + "=@" + fieldInfo.PropertyName;
+                if (!DbAttributes.CheckPrimaryKey(property))
+                    continue;
+
+                var fieldName = property.Name;
+                var attr = DbAttributes.GetDbFieldInfo(property);
+                if (attr != null)
+                    fieldName = attr.FieldName;
+
+                return " WHERE " + fieldName + "=@" + property.Name;
             }
 
             throw new Exception("can't find primary key when generate delete command!");
@@ -76,47 +98,42 @@ namespace Ayx.Dapper.Extensions.Sql
 
         public string GetFields(string fields)
         {
-            var result = "";
+            var result = new List<string>();
 
             if (string.IsNullOrEmpty(fields))
             {
                 foreach (var property in ModelType.GetProperties())
                 {
-                    result += GetFieldName(property);
+                    result.Add(GetFieldName(property));
                 }
             }
             else
             {
                 foreach (var field in fields.Split(','))
                 {
-                    var property = ModelType
-                        .GetProperties()
-                        .Where(p => p.Name == field)
-                        .FirstOrDefault();
+                    var property = GetProperty(field);
                     if (property == null)
-                        result += field + ",";
+                        result.Add(field);
                     else
-                        result += GetFieldName(property);
+                        result.Add(GetFieldName(property));
                 }
             }
-            if (result.Length > 1)
-                return result.Substring(0, result.Length - 1);
-            else
-                return null;
+
+            return JoinFields(result);
         }
 
         public string GetFieldName(PropertyInfo property)
         {
-            if (property == null) return "";
+            if (property == null) return null;
 
             if (!CheckDbProperty(property))
-                return "";
+                return null;
 
             if (TableInfo != null)
             {
-                return TableInfo.GetDbFieldName(property.Name) + ",";
+                return TableInfo.GetDbFieldName(property.Name);
             }
-            return DbAttributes.GetDbFieldName(property) + ",";
+            return DbAttributes.GetDbFieldName(property);
         }
 
         public string GetTableName()
@@ -167,5 +184,30 @@ namespace Ayx.Dapper.Extensions.Sql
             }
             return result;
         }
+
+        public PropertyInfo GetProperty(string propertyName)
+        {
+            if (ModelType == null) return null;
+
+            return ModelType
+                .GetProperties()
+                .Where(p => p.Name == propertyName)
+                .FirstOrDefault();
+        }
+
+        public static string JoinFields(List<string> fields, string separator = ",")
+        {
+            var sb = new StringBuilder();
+            foreach (var field in fields)
+            {
+                if (string.IsNullOrEmpty(field))
+                    continue;
+                sb.Append(field).Append(separator);
+            }
+            if (sb.Length > 0) ;
+            return sb.ToString(0, sb.Length - 1);
+        }
+
+        #endregion
     }
 }
