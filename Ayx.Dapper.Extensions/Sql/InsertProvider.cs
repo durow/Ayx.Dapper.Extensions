@@ -1,17 +1,19 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
 namespace Ayx.Dapper.Extensions.Sql
 {
-    public class InsertProvider<T>:SqlBase
+    public class InsertProvider<T> : SqlBase
     {
         public string FieldsPart { get; private set; }
         public bool Identity { get; private set; }
 
         public InsertProvider(DbTableInfo tableInfo, SqlCache cache)
-            :base(typeof(T),tableInfo,cache)
+            : base(typeof(T), tableInfo, cache)
         {
             Verb = "INSERT";
         }
@@ -43,7 +45,7 @@ namespace Ayx.Dapper.Extensions.Sql
         public FieldsAndValues GetInsertFields()
         {
 
-            if(string.IsNullOrEmpty(FieldsPart))
+            if (string.IsNullOrEmpty(FieldsPart))
                 return MakeEmptyFields();
             else
                 return MakeFields();
@@ -70,10 +72,10 @@ namespace Ayx.Dapper.Extensions.Sql
             var result = new FieldsAndValues();
             foreach (var field in FieldsPart.Split(','))
             {
-                if(TableInfo != null)
+                if (TableInfo != null)
                 {
                     var fieldInfo = TableInfo.GetField(field);
-                    if(fieldInfo != null)
+                    if (fieldInfo != null)
                     {
                         if (fieldInfo.NotDbField) continue;
                         if (fieldInfo.IsAutoIncrement) continue;
@@ -103,6 +105,19 @@ namespace Ayx.Dapper.Extensions.Sql
             if (!Identity) return "";
 
             return ";SELECT @@IDENTITY";
+        }
+
+        public int Go(
+            object param = null,
+            IDbTransaction transaction = null,
+            int? timeOut = null,
+            CommandType? commandType = null)
+        {
+            var sql = GetSQL();
+            if (Identity)
+                return Connection.ExecuteScalar<int>(sql, param, transaction, timeOut, commandType);
+            else
+                return Connection.Execute(sql, param, transaction, timeOut, commandType);
         }
     }
 

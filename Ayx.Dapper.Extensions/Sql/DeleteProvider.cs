@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using Dapper;
 
 namespace Ayx.Dapper.Extensions.Sql
 {
@@ -31,6 +32,16 @@ namespace Ayx.Dapper.Extensions.Sql
         {
             var where = GetKeyWhere(WherePart);
             return $"DELETE FROM {TableName}{where}";
+        }
+
+        public int Go(
+            object param = null,
+            IDbTransaction transaction = null,
+            int? timeOut = null,
+            CommandType? commandType = null)
+        {
+            var sql = GetSQL();
+            return Connection.Execute(sql, param, transaction, timeOut, commandType);
         }
     }
 }

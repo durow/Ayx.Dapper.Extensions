@@ -24,11 +24,12 @@ namespace Ayx.Dapper.Extensions
         public int Count { get { return tableList.Count; } }
 
         private List<DbTableInfo> tableList = new List<DbTableInfo>();
-        private SqlBuilder SqlGenerator = new SqlBuilder();
+        public SqlBuilder SqlBuilder { get; set; }
 
         public DbInfo(Func<IDbConnection> createConnection = null)
         {
             CreateConnection = createConnection;
+            SqlBuilder = new SqlBuilder();
         }
         public DbTableInfo Register<TModel>(string tableName = null,string token = null)
         {
@@ -63,12 +64,52 @@ namespace Ayx.Dapper.Extensions
             tableList.Clear();
         }
 
-        public SelectProvider<T> Select<T>(IDbConnection connection)
+        #region Database Methods
+
+        public SelectProvider<T> Select<T>(IDbConnection connection = null)
         {
+            if (connection == null)
+                connection = CreateConnection();
+
             var tableInfo = GetTable<T>();
-            var result = SqlGenerator.Select<T>(tableInfo);
+            var result = SqlBuilder.Select<T>(tableInfo);
             result.Connection = connection;
             return result;
         }
+
+        public DeleteProvider<T> Delete<T>(IDbConnection connection = null)
+        {
+            if (connection == null)
+                connection = CreateConnection();
+
+            var tableInfo = GetTable<T>();
+            var result = SqlBuilder.Delete<T>(tableInfo);
+            result.Connection = connection;
+            return result;
+        }
+
+        public InsertProvider<T> Insert<T>(IDbConnection connection = null)
+        {
+            if (connection == null)
+                connection = CreateConnection();
+
+            var tableInfo = GetTable<T>();
+            var result = SqlBuilder.Insert<T>(tableInfo);
+            result.Connection = connection;
+            return result;
+        }
+
+        public UpdateProvider<T> Update<T>(IDbConnection connection = null)
+        {
+            if (connection == null)
+                connection = CreateConnection();
+
+            var tableInfo = GetTable<T>();
+            var result = SqlBuilder.Update<T>(tableInfo);
+            result.Connection = connection;
+            return result;
+        }
+
+        #endregion
     }
 }

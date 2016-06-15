@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -85,6 +87,16 @@ namespace Ayx.Dapper.Extensions.Sql
             
             var dbFieldName = GetFieldName(property);
             return $"{dbFieldName}=@{property.Name}";
+        }
+
+        public int Go(
+            object param = null,
+            IDbTransaction transaction = null,
+            int? timeOut = null,
+            CommandType? commandType = null)
+        {
+            var sql = GetSQL();
+            return Connection.Execute(sql, param, transaction, timeOut, commandType);
         }
     }
 }

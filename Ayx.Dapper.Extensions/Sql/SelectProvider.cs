@@ -10,8 +10,11 @@ namespace Ayx.Dapper.Extensions.Sql
 {
     public class SelectProvider<T> : SqlBase
     {
-        public string FieldsPart { get; set; }
-        public string WherePart { get; set; }
+        public string FieldsPart { get; private set; }
+        public string WherePart { get; private set; }
+        public bool IsDistinct { get; private set; }
+        public string OrderBy { get; private set; }
+        public int TopNumber { get; private set; } = 0;
 
         public SelectProvider(DbTableInfo tableInfo, SqlCache cache)
             : base(typeof(T), tableInfo, cache)
@@ -40,6 +43,24 @@ namespace Ayx.Dapper.Extensions.Sql
         public SelectProvider<T> Fields(string fields)
         {
             FieldsPart = fields;
+            return this;
+        }
+
+        public SelectProvider<T> Distinct()
+        {
+            IsDistinct = true;
+            return this;
+        }
+
+        public SelectProvider<T> Order(string orderBy)
+        {
+            OrderBy = orderBy;
+            return this;
+        }
+
+        public SelectProvider<T> Top(int top)
+        {
+            TopNumber = top;
             return this;
         }
 
