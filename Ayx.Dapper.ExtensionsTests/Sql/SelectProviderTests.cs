@@ -19,7 +19,7 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
                 new DbFieldInfo("IntProperty", "IntKey"),
                 new DbFieldInfo("NotField").SetNotDbField());
 
-            var select = new SelectProvider<AttributeModel>( null, null);
+            var select = new SelectProvider<AttributeModel>(null, null);
             var select2 = new SelectProvider<AttributeModel>(tableInfo, null);
 
             var test1 = select.Fields(null).GetSelectFields();
@@ -39,6 +39,17 @@ namespace Ayx.Dapper.Extensions.Sql.Tests
             Assert.AreEqual(expected2, test4);
             Assert.AreEqual(expected3, test5);
             Assert.AreEqual(expected3, test6);
+        }
+
+        [TestMethod]
+        public void GetSqlTest()
+        {
+            var select = new SelectProvider<AttributeModel>(null,null)
+                .Distinct().Top(10).Fields("ID,IntProperty").Where("ID>20").OrderBy("ID").Desc();
+            var actual = select.GetSQL();
+            var expected = @"SELECT DISTINCT TOP10 ID,IntField AS IntProperty FROM TestModel WHERE ID>20 ORDER BY ID DESC";
+
+            Assert.AreEqual(expected, actual);
         }
     }
 }

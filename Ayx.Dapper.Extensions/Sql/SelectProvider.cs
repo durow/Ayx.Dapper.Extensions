@@ -13,8 +13,9 @@ namespace Ayx.Dapper.Extensions.Sql
         public string FieldsPart { get; private set; }
         public string WherePart { get; private set; }
         public bool IsDistinct { get; private set; }
-        public string OrderBy { get; private set; }
-        public int TopNumber { get; private set; } = 0;
+        public string OrderByPart { get; private set; }
+        public int TopPart { get; private set; } = 0;
+        public string OrderTypePart { get; private set; }
 
         public SelectProvider(DbTableInfo tableInfo, SqlCache cache)
             : base(typeof(T), tableInfo, cache)
@@ -31,7 +32,11 @@ namespace Ayx.Dapper.Extensions.Sql
         {
             var fields = GetSelectFields();
             var where = GetWhere(WherePart);
-            return $"SELECT {fields} FROM {TableName}{where}";
+            var distinct = GetDistinct();
+            var top = GetTop();
+            var order = GetOrderBy();
+
+            return $"SELECT {distinct}{top}{fields} FROM {TableName}{where}{order}";
         }
 
         public SelectProvider<T> Where(string where)
@@ -52,15 +57,27 @@ namespace Ayx.Dapper.Extensions.Sql
             return this;
         }
 
-        public SelectProvider<T> Order(string orderBy)
+        public SelectProvider<T> OrderBy(string orderBy)
         {
-            OrderBy = orderBy;
+            OrderByPart = orderBy;
             return this;
         }
 
         public SelectProvider<T> Top(int top)
         {
-            TopNumber = top;
+            TopPart = top;
+            return this;
+        }
+
+        public SelectProvider<T> Desc()
+        {
+            OrderTypePart = "DESC";
+            return this;
+        }
+
+        public SelectProvider<T> Asc()
+        {
+            OrderTypePart = "ASC";
             return this;
         }
 
@@ -124,6 +141,30 @@ namespace Ayx.Dapper.Extensions.Sql
             }
 
             return field;
+        }
+
+        public string GetTop()
+        {
+            if (TopPart > 0)
+                return $"TOP{TopPart} ";
+            else
+                return "";
+        }
+
+        public string GetDistinct()
+        {
+            if (IsDistinct)
+                return "DISTINCT ";
+            else
+                return "";
+        }
+
+        public string GetOrderBy()
+        {
+            if (string.IsNullOrEmpty(OrderByPart))
+                return "";
+            else
+                return $" ORDER BY {OrderByPart} {OrderTypePart}";
         }
 
         public IEnumerable<T> Go(
